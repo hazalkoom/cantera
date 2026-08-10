@@ -1228,7 +1228,7 @@ class TestReactor:
         gas2 = ct.Solution('h2o2.yaml', transport_model=None)
         gas2.TPX = 600, 101325, 'O2:1.0'
         hot_inlet = ct.Reservoir(gas2, name='InH')
-        gas2.TPX = 200, 101325, 'O2:1.0'
+        gas2.TPX = 300, 101325, 'O2:1.0'
         cold_inlet = ct.Reservoir(gas2, name='InC')
         outlet = ct.Reservoir(gas2, name='Out')
         mfc_hot1 = ct.MassFlowController(hot_inlet, self.r1, mdot=1.5, name='mfc_h1')
@@ -1243,18 +1243,18 @@ class TestReactor:
                          heat_flow_attr={'color': 'orange'},
                          print_state=True)
         expected = {
-            '\tRC [label="{RC|{T (K)\\n202.18|P (bar)\\n1.013}}" shape=Mrecord]\n',
-            '\tOut [label="{Out|{T (K)\\n200.00|P (bar)\\n1.013}}" shape=Mrecord]\n',
+            '\tRC [label="{RC|{T (K)\\n301.62|P (bar)\\n1.013}}" shape=Mrecord]\n',
+            '\tOut [label="{Out|{T (K)\\n300.00|P (bar)\\n1.013}}" shape=Mrecord]\n',
             '\tInH [label="{InH|{T (K)\\n600.00|P (bar)\\n1.013}}" shape=Mrecord]\n',
-            '\tInC [label="{InC|{T (K)\\n200.00|P (bar)\\n1.013}}" shape=Mrecord]\n',
-            '\tRH [label="{RH|{T (K)\\n598.42|P (bar)\\n1.013}}" shape=Mrecord]\n',
+            '\tInC [label="{InC|{T (K)\\n300.00|P (bar)\\n1.013}}" shape=Mrecord]\n',
+            '\tRH [label="{RH|{T (K)\\n598.81|P (bar)\\n1.013}}" shape=Mrecord]\n',
             '\tInH -> RH [label="mfc_h1\\nṁ = 2.5 kg/s" color=green]\n',
             '\tInH -> RH [label="mfc_h2\\nṁ = 2.5 kg/s" color=green]\n',
             '\tRH -> Out [label="pc_h1\\nṁ = 2.5 kg/s" color=green]\n',
             '\tRH -> Out [label="pc_h2\\nṁ = 2.5 kg/s" color=green]\n',
             '\tRC -> Out [label="pc_c\\nṁ = 2 kg/s" color=green]\n',
             '\tInC -> RC [label="mfc_c\\nṁ = 2 kg/s" color=green]\n',
-            '\tRH -> RC [label="wall\\nQ̇ = 4e+03 W" color=orange style=dashed]\n'
+            '\tRH -> RC [label="wall\\nQ̇ = 3e+03 W" color=orange style=dashed]\n'
         }
         # use sets because order can be random
         # expected defines two alternatives for inH -> RH and RH -> Out as test defines
