@@ -11,12 +11,13 @@ and has some effect very near the surface.
 The catalytic combustion mechanism is from Deutschmann et al., 26th
 Symp. (Intl.) on Combustion,1996 pp. 1747-1754
 
-Requires: cantera >= 3.0, matplotlib >= 2.0
+Requires: cantera >= 3.0, matplotlib >= 2.0, pandas
 
 .. tags:: Python, catalysis, combustion, 1D flow, surface chemistry
 """
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import cantera as ct
 
@@ -144,16 +145,54 @@ sim.show_stats()
 # %%
 # Temperature Profile
 # -------------------
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(num="Temperature Profile")
 ax.plot(sim.grid, sim.T, color='C3')
-ax.set_ylabel('heat release rate [MW/m³]')
-ax.set(xlabel='distance from inlet [m]')
+ax.set(xlabel='distance from inlet [m]', ylabel='temperature [K]')
+plt.show()
+
+# %%
+# Heat Release by Reaction
+# ------------------------
+#
+# In catalytic combustion, most of the heat release occurs at the surface through
+# heterogeneous reactions, rather than in the gas phase. The per-reaction heat
+# production rates for the surface are evaluated at the reacting surface.
+
+# Integrate gas-phase heat production rates over the domain [W/m³ * m = W/m²]
+trapezoid = getattr(np, "trapezoid", None) or np.trapz
+gas_hrr = trapezoid(sim.heat_production_rates, sim.grid, axis=1)
+gas_labels = gas.reaction_equations()
+
+# Surface heat production rates are already per unit area [W/m²]
+surf_hrr = surf_phase.heat_production_rates
+surf_labels = surf_phase.reaction_equations()
+
+# Combine gas and surface contributions (convert to MW/m²)
+all_hrr = np.concatenate([gas_hrr, surf_hrr]) / 1e6
+all_labels = gas_labels + surf_labels
+
+# Create a DataFrame to store heat-release data
+df = pd.DataFrame({'heat_release_rate': all_hrr}, index=all_labels)
+
+# Filter out reactions with negligible heat release rate (< 1e-4 MW/m²)
+df = df[df['heat_release_rate'].abs() > 1e-4]
+
+# Sort the reactions in order of descending magnitude
+df = df.iloc[(-df['heat_release_rate'].abs()).argsort()]
+
+fig, ax = plt.subplots(num="Top Heat-Releasing Reactions")
+df.plot.barh(ax=ax, legend=None)
+ax.invert_yaxis()  # put the largest heat release on top
+ax.set_xlabel('heat release rate [MW/m²]')
+ax.set_title('Top Heat-Releasing Reactions')
+ax.grid(axis='x')
+plt.tight_layout()
 plt.show()
 
 # %%
 # Major Species Profiles
 # ----------------------
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(num="Major Species Profiles")
 major = ('O2', 'CH4', 'H2O', 'CO2')
 states = sim.to_array()
 ax.plot(states.grid, states(*major).X, label=major)
